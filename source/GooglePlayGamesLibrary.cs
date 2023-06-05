@@ -5,6 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Controls;
 
+using System.IO;
+using System.Reflection;
+using System.Diagnostics;
+using System.Text;
+using System.Threading;
+using System.Linq;
+
 namespace GooglePlayGamesLibrary
 {
     public class GooglePlayGamesLibrary : LibraryPlugin
@@ -31,8 +38,58 @@ namespace GooglePlayGamesLibrary
             };
         }
 
+        private string ShimExe => Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"PlayServiceShim.exe");
         public override IEnumerable<GameMetadata> GetGames(LibraryGetGamesArgs args)
         {
+            if (Environment.Is64BitOperatingSystem)
+            {
+                if (System.IO.File.Exists(ShimExe))
+                {
+                    StringBuilder output = new StringBuilder();
+                    Process proc = new Process()
+                    {
+                        StartInfo = new ProcessStartInfo()
+                        {
+                            FileName = ShimExe,
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                            RedirectStandardOutput = true,
+                        }
+                    };
+                    
+                    proc.Start();
+                    string data = proc.StandardOutput.ReadToEnd();
+                    ////proc.WaitForExit(); // I've had nothing but issues with this
+                    //while (!proc.HasExited)
+                    //    System.Threading.Thread.Sleep(100);
+                    proc.Close();
+
+                    string[] lines = data.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                    Models.Shim.AppLibraryModuleState ShimLibrary = Playnite.SDK.Data.Serialization.FromJson<Models.Shim.AppLibraryModuleState>(lines[0]);
+                    return ShimLibrary.AndroidGames.Where(dr => dr.Value.InstalledApp != null && !dr.Value.InstalledApp.IsSystemApp)
+                                            .Select(dr => {
+                                                GameMetadata game = new GameMetadata()
+                                                {
+                                                    Source = new MetadataNameProperty("Google Play Games on PC"),
+                                                    Name = dr.Value.InstalledApp.Title,
+                                                    GameId = dr.Value.InstalledApp.PackageName,
+                                                    IsInstalled = dr.Value.StateCase == Models.Shim.SingleApp.StateOneofCase.InstalledApp,
+                                                };
+                                                // maybe also check InstalledTimestampMs?
+                                                if (dr.Value.InstalledApp.LastLaunchedTimestampMs > 0)
+                                                    game.LastActivity = DateTimeOffset.FromUnixTimeMilliseconds(dr.Value.InstalledApp.LastLaunchedTimestampMs).UtcDateTime;
+                                                if (dr.Value.GameMetadata?.BackgroundImage?.Url != null)
+                                                    game.BackgroundImage = new MetadataFile(dr.Value.GameMetadata?.BackgroundImage?.Url);
+                                                if (dr.Value.GameMetadata?.AppIcon?.Url != null)
+                                                    game.Icon = new MetadataFile(dr.Value.GameMetadata?.AppIcon?.Url);
+                                                //if (dr.Value.GameMetadata?.Logo?.Url != null)
+                                                //    game.Logo = new MetadataFile(dr.Value.GameMetadata?.Logo?.Url);
+                                                return game;
+                                            }).ToList();
+
+                }
+            }
+
             // Return list of user's games.
             return new List<GameMetadata>()
             {

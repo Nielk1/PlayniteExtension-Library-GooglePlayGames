@@ -95,6 +95,30 @@
     <Compile Include="GooglePlayGamesLibrarySettingsView.xaml.cs">
       <DependentUpon>GooglePlayGamesLibrarySettingsView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Models\Shim\AndroidInstallSession.cs" />
+    <Compile Include="Models\Shim\AndroidUninstallSession.cs" />
+    <Compile Include="Models\Shim\AppLibraryModuleState.cs" />
+    <Compile Include="Models\Shim\GameMetadata.cs" />
+    <Compile Include="Models\Shim\ImageData.cs" />
+    <Compile Include="Models\Shim\InstallationDetails.cs" />
+    <Compile Include="Models\Shim\InstallationSize.cs" />
+    <Compile Include="Models\Shim\InstallGameRequest.cs" />
+    <Compile Include="Models\Shim\LaunchingDetails.cs" />
+    <Compile Include="Models\Shim\LibraryApp.cs" />
+    <Compile Include="Models\Shim\PcGameInstallSession.cs" />
+    <Compile Include="Models\Shim\RegistryLocation.cs" />
+    <Compile Include="Models\Shim\SingleApp.cs" />
+    <Compile Include="Models\Shim\UninstallationDetails.cs" />
+    <Compile Include="Models\Shim\DynastyGame.cs" />
+    <Compile Include="Models\Shim\DynastyMetadata.cs" />
+    <Compile Include="Models\Shim\PcApp.cs" />
+    <Compile Include="Models\Shim\PcLibraryGame.cs" />
+    <Compile Include="Models\Shim\UninstallGameRequest.cs" />
+    <Compile Include="Models\Shim\UpdateState.cs" />
+    <Compile Include="Models\Shim\UserActivity.cs" />
+    <Compile Include="Models\Shim\UserInitiatedInstall.cs" />
+    <Compile Include="Models\Shim\UserInitiatedUninstall.cs" />
+    <Compile Include="Models\Shim\UserPreferredAppData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -131,4 +155,7 @@
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="('$(Configuration)' == 'ReleasePack') AND ('$(Playnite_Toolbox_Dir)' != '') AND ('$(Playnite_Toolbox_TargetDir)' != '')">
     <Exec Command="%22$(Playnite_Toolbox_Dir)\Toolbox.exe%22 pack %22$(TargetDir.TrimEnd('\'))%22 %22$(Playnite_Toolbox_TargetDir)%22" />
   </Target>
+  <PropertyGroup>
+    <PostBuildEvent>copy /Y "$(SolutionDir)shim\bin\x64\$(ConfigurationName)\net48\PlayServiceShim.exe" "$(TargetDir)PlayServiceShim.exe"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

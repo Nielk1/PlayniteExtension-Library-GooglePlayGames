@@ -5,6 +5,8 @@ VisualStudioVersion = 17.6.33723.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GooglePlayGamesLibrary", "source\GooglePlayGamesLibrary.csproj", "{2351B5C1-6E28-4B79-A1D9-90FDA53B5417}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlayServiceShim", "shim\PlayServiceShim.csproj", "{D1688330-0969-43C4-93A6-378CF226C059}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,6 +20,10 @@ Global
 		{2351B5C1-6E28-4B79-A1D9-90FDA53B5417}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2351B5C1-6E28-4B79-A1D9-90FDA53B5417}.ReleasePack|Any CPU.ActiveCfg = ReleasePack|Any CPU
 		{2351B5C1-6E28-4B79-A1D9-90FDA53B5417}.ReleasePack|Any CPU.Build.0 = ReleasePack|Any CPU
+		{D1688330-0969-43C4-93A6-378CF226C059}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{D1688330-0969-43C4-93A6-378CF226C059}.Debug|Any CPU.Build.0 = Debug|x64
+		{D1688330-0969-43C4-93A6-378CF226C059}.Release|Any CPU.ActiveCfg = Release|x64
+		{D1688330-0969-43C4-93A6-378CF226C059}.ReleasePack|Any CPU.ActiveCfg = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
