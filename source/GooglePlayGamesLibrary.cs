@@ -79,11 +79,11 @@ namespace GooglePlayGamesLibrary
                                                 if (dr.Value.InstalledApp.LastLaunchedTimestampMs > 0)
                                                     game.LastActivity = DateTimeOffset.FromUnixTimeMilliseconds(dr.Value.InstalledApp.LastLaunchedTimestampMs).UtcDateTime;
                                                 if (dr.Value.GameMetadata?.BackgroundImage?.Url != null)
-                                                    game.BackgroundImage = new MetadataFile(dr.Value.GameMetadata?.BackgroundImage?.Url);
+                                                    game.BackgroundImage = new MetadataFile(dr.Value.GameMetadata?.BackgroundImage?.Url + @"=rp-s1920");
                                                 if (dr.Value.GameMetadata?.AppIcon?.Url != null)
-                                                    game.Icon = new MetadataFile(dr.Value.GameMetadata?.AppIcon?.Url);
+                                                    game.Icon = new MetadataFile(dr.Value.GameMetadata?.AppIcon?.Url + @"=rp-s1920");
                                                 //if (dr.Value.GameMetadata?.Logo?.Url != null)
-                                                //    game.Logo = new MetadataFile(dr.Value.GameMetadata?.Logo?.Url);
+                                                //    game.Logo = new MetadataFile(dr.Value.GameMetadata?.Logo?.Url + @"=rp-s1920");
                                                 return game;
                                             }).ToList();
 
