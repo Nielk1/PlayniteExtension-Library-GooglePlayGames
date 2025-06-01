@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -39,6 +39,15 @@
     <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseUpgrade|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -55,70 +64,50 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\include\PlayniteSource\source\Playnite\Common\Extensions\StringExtensions.cs">
-      <Link>include\Playnite\Common\Extensions\StringExtensions.cs</Link>
+    <Compile Include="..\Include\Playnite\source\Playnite\Common\Extensions\StringExtensions.cs">
+      <Link>Include\Playnite\Common\Extensions\StringExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\include\PlayniteSource\source\Playnite\Common\Paths.cs">
-      <Link>include\Playnite\Common\Paths.cs</Link>
+    <Compile Include="..\Include\Playnite\source\Playnite\Common\Paths.cs">
+      <Link>Include\Playnite\Common\Paths.cs</Link>
     </Compile>
-    <Compile Include="..\include\PlayniteSource\source\Playnite\Common\ProcessStarter.cs">
-      <Link>include\Playnite\Common\ProcessStarter.cs</Link>
+    <Compile Include="..\Include\Playnite\source\Playnite\Common\ProcessStarter.cs">
+      <Link>Include\Playnite\Common\ProcessStarter.cs</Link>
     </Compile>
-    <Compile Include="..\include\PlayniteSource\source\Playnite\Native\Fileapi.cs">
-      <Link>include\Playnite\Native\Fileapi.cs</Link>
+    <Compile Include="..\Include\Playnite\source\Playnite\Native\Fileapi.cs">
+      <Link>Include\Playnite\Native\Fileapi.cs</Link>
     </Compile>
-    <Compile Include="..\include\PlayniteSource\source\Playnite\Native\Kernel32.cs">
-      <Link>include\Playnite\Native\Kernel32.cs</Link>
+    <Compile Include="..\Include\Playnite\source\Playnite\Native\Kernel32.cs">
+      <Link>Include\Playnite\Native\Kernel32.cs</Link>
     </Compile>
-    <Compile Include="..\include\PlayniteSource\source\Playnite\Native\Ntdll.cs">
-      <Link>include\Playnite\Native\Ntdll.cs</Link>
+    <Compile Include="..\Include\Playnite\source\Playnite\Native\Ntdll.cs">
+      <Link>Include\Playnite\Native\Ntdll.cs</Link>
     </Compile>
-    <Compile Include="..\include\PlayniteSource\source\Playnite\Native\Processthreadsapi.cs">
-      <Link>include\Playnite\Native\Processthreadsapi.cs</Link>
+    <Compile Include="..\Include\Playnite\source\Playnite\Native\Processthreadsapi.cs">
+      <Link>Include\Playnite\Native\Processthreadsapi.cs</Link>
     </Compile>
-    <Compile Include="..\include\PlayniteSource\source\Playnite\Native\Shlwapi.cs">
-      <Link>include\Playnite\Native\Shlwapi.cs</Link>
+    <Compile Include="..\Include\Playnite\source\Playnite\Native\Shlwapi.cs">
+      <Link>Include\Playnite\Native\Shlwapi.cs</Link>
     </Compile>
-    <Compile Include="..\include\PlayniteSource\source\Playnite\Native\Winbase.cs">
-      <Link>include\Playnite\Native\Winbase.cs</Link>
+    <Compile Include="..\Include\Playnite\source\Playnite\Native\Winbase.cs">
+      <Link>Include\Playnite\Native\Winbase.cs</Link>
     </Compile>
-    <Compile Include="..\include\PlayniteSource\source\Playnite\Native\Windef.cs">
-      <Link>include\Playnite\Native\Windef.cs</Link>
+    <Compile Include="..\Include\Playnite\source\Playnite\Native\Windef.cs">
+      <Link>Include\Playnite\Native\Windef.cs</Link>
     </Compile>
-    <Compile Include="..\include\PlayniteSource\source\Playnite\Native\winuser.cs">
-      <Link>include\Playnite\Native\winuser.cs</Link>
+    <Compile Include="..\Include\Playnite\source\Playnite\Native\winuser.cs">
+      <Link>Include\Playnite\Native\winuser.cs</Link>
     </Compile>
     <Compile Include="GooglePlayGames.cs" />
     <Compile Include="GooglePlayGamesLibraryClient.cs" />
     <Compile Include="GooglePlayGamesLibrary.cs" />
+    <Compile Include="GooglePlayGamesLibraryPlayController.cs" />
     <Compile Include="GooglePlayGamesLibrarySettings.cs" />
     <Compile Include="GooglePlayGamesLibrarySettingsView.xaml.cs">
       <DependentUpon>GooglePlayGamesLibrarySettingsView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Models\Shim\AndroidInstallSession.cs" />
-    <Compile Include="Models\Shim\AndroidUninstallSession.cs" />
-    <Compile Include="Models\Shim\AppLibraryModuleState.cs" />
-    <Compile Include="Models\Shim\GameMetadata.cs" />
-    <Compile Include="Models\Shim\ImageData.cs" />
-    <Compile Include="Models\Shim\InstallationDetails.cs" />
-    <Compile Include="Models\Shim\InstallationSize.cs" />
-    <Compile Include="Models\Shim\InstallGameRequest.cs" />
-    <Compile Include="Models\Shim\LaunchingDetails.cs" />
-    <Compile Include="Models\Shim\LibraryApp.cs" />
-    <Compile Include="Models\Shim\PcGameInstallSession.cs" />
-    <Compile Include="Models\Shim\RegistryLocation.cs" />
-    <Compile Include="Models\Shim\SingleApp.cs" />
-    <Compile Include="Models\Shim\UninstallationDetails.cs" />
-    <Compile Include="Models\Shim\DynastyGame.cs" />
-    <Compile Include="Models\Shim\DynastyMetadata.cs" />
-    <Compile Include="Models\Shim\PcApp.cs" />
-    <Compile Include="Models\Shim\PcLibraryGame.cs" />
-    <Compile Include="Models\Shim\UninstallGameRequest.cs" />
-    <Compile Include="Models\Shim\UpdateState.cs" />
-    <Compile Include="Models\Shim\UserActivity.cs" />
-    <Compile Include="Models\Shim\UserInitiatedInstall.cs" />
-    <Compile Include="Models\Shim\UserInitiatedUninstall.cs" />
-    <Compile Include="Models\Shim\UserPreferredAppData.cs" />
+    <Compile Include="GooglePlayGamesLibraryMetadataProvider.cs" />
+    <Compile Include="Helper\ProcessHelper.cs" />
+    <Compile Include="Helper\ProcessNameMonitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -127,7 +116,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="icon.png">
+    <None Include="Resources\GooglePlayGamesLibraryIcon.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -151,11 +140,25 @@
       <Version>6.9.0</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="IWshRuntimeLibrary">
+      <Guid>{F935DC20-1CF0-11D0-ADB9-00C04FD58A0B}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="('$(Configuration)' == 'ReleasePack') AND ('$(Playnite_Toolbox_Dir)' != '') AND ('$(Playnite_Toolbox_TargetDir)' != '')">
+  <Target Name="PostBuildPack" AfterTargets="PostBuildEvent" Condition="('$(Configuration)' == 'ReleasePack') AND ('$(Playnite_Toolbox_Dir)' != '') AND ('$(Playnite_Toolbox_TargetDir)' != '')">
     <Exec Command="%22$(Playnite_Toolbox_Dir)\Toolbox.exe%22 pack %22$(TargetDir.TrimEnd('\'))%22 %22$(Playnite_Toolbox_TargetDir)%22" />
   </Target>
-  <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(SolutionDir)shim\bin\x64\$(ConfigurationName)\net48\PlayServiceShim.exe" "$(TargetDir)PlayServiceShim.exe"</PostBuildEvent>
-  </PropertyGroup>
+  <Target Name="PostBuildUpgrade" AfterTargets="PostBuildEvent" Condition="('$(Configuration)' == 'ReleaseUpgrade') AND ('$(RoboCopy_Logs_Dir)' != '') AND ('$(RoboCopy_Exclusions_Dir)' != '') AND ('$(Playnite_Extensions_Dir)' != '')">
+    <Exec IgnoreExitCode="true" Command="robocopy %22$(TargetDir.TrimEnd('\'))%22 %22$(Playnite_Extensions_Dir)\CanRanBan_Library_GooglePlayGames%22 /mir /copy:DAT /dcopy:DAT /job:%22$(RoboCopy_Exclusions_Dir)\RoboCopy - File Exclusions - Extension.rcj%22 /unilog:%22$(RoboCopy_Logs_Dir)\RoboCopy - Log - Release Upgrade - $(ProjectName).txt%22">
+      <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+    </Exec>
+    <Error Condition="$(ErrorCode) > 7" Text="RoboCopy failed during %22Release Upgrade%22 operation of $(ProjectName) project." />
+  </Target>
 </Project>

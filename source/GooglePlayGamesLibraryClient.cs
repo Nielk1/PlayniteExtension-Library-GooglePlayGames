@@ -1,6 +1,7 @@
-﻿using Playnite.Common;
+// This file is part of Google Play Games on PC Library. A Playnite extension to import games available on PC from Google Play Games.
+// Copyright CanRanBan, 2023-2025, Licensed under the EUPL-1.2 or later.
+
 using Playnite.SDK;
-using System.Diagnostics;
 
 namespace GooglePlayGamesLibrary
 {
@@ -19,32 +20,20 @@ namespace GooglePlayGamesLibrary
 
         public override void Open()
         {
-            GooglePlayGames.StartClient();
+            GooglePlayGames.StartClient(false);
         }
 
         public override void Shutdown()
         {
-            var serviceProcessList = Process.GetProcessesByName("Service");
-            if (serviceProcessList == null)
+            if (!GooglePlayGames.IsClientOpen())
             {
-                logger.Info("Google Play Games is no longer running, not necessary to exit client.");
-                return;
+                var applicationName = GooglePlayGames.ApplicationName;
+
+                logger.Info(applicationName + @" is no longer running, not necessary to exit client.");
             }
             else
             {
-                var servicePath = GooglePlayGames.ServiceExecutablePath;
-
-                foreach (var process in serviceProcessList)
-                {
-                    var processPath = process.MainModule.FileName;
-                    if (Paths.AreEqual(servicePath, processPath))
-                    {
-                        GooglePlayGames.ExitClient();
-                        return;
-                    }
-                }
-
-                logger.Info("Other application(s) named 'Service' is/are running, not necessary to exit client.");
+                GooglePlayGames.ExitClient();
             }
         }
     }

@@ -1,4 +1,7 @@
-﻿using System.Reflection;
+// This file is part of Google Play Games on PC Library. A Playnite extension to import games available on PC from Google Play Games.
+// Copyright CanRanBan, 2023-2025, Licensed under the EUPL-1.2 or later.
+
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -10,7 +13,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Google Play Games on PC Library for Playnite")]
-[assembly: AssemblyCopyright("Copyright © 2023 - CanRanBan")]
+[assembly: AssemblyCopyright("Copyright © 2023-2025 - CanRanBan")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +35,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+[assembly: AssemblyVersion("0.2.6.0")]
+[assembly: AssemblyFileVersion("0.2.6.0")]
