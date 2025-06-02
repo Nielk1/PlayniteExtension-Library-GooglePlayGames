@@ -108,6 +108,7 @@
     <Compile Include="GooglePlayGamesLibraryMetadataProvider.cs" />
     <Compile Include="Helper\ProcessHelper.cs" />
     <Compile Include="Helper\ProcessNameMonitor.cs" />
+    <Compile Include="Models\Shim.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -161,4 +162,7 @@
     </Exec>
     <Error Condition="$(ErrorCode) &gt; 7" Text="RoboCopy failed during %22Release Upgrade%22 operation of $(ProjectName) project." />
   </Target>
+  <PropertyGroup>
+    <PostBuildEvent>copy /Y "$(SolutionDir)shim\bin\x64\$(ConfigurationName)\net48\PlayServiceShim.exe" "$(TargetDir)PlayServiceShim.exe"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

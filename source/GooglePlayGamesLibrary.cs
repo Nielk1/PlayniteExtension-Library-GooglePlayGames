@@ -3,8 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Controls;
 using Playnite.SDK;
@@ -320,8 +323,98 @@ namespace GooglePlayGamesLibrary
             return installedGames;
         }
 
+        private string ShimExe => Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"PlayServiceShim.exe");
+
         public override IEnumerable<GameMetadata> GetGames(LibraryGetGamesArgs args)
         {
+            if (Environment.Is64BitOperatingSystem)
+            {
+                if (System.IO.File.Exists(ShimExe))
+                {
+                    StringBuilder output = new StringBuilder();
+                    Process proc = new Process()
+                    {
+                        StartInfo = new ProcessStartInfo()
+                        {
+                            FileName = ShimExe,
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                            RedirectStandardOutput = true,
+                        }
+                    };
+
+                    proc.Start();
+                    string data = proc.StandardOutput.ReadToEnd();
+                    ////proc.WaitForExit(); // I've had nothing but issues with this
+                    //while (!proc.HasExited)
+                    //    System.Threading.Thread.Sleep(100);
+                    proc.Close();
+
+                    Models.Shim.Shim ShimLibrary = Playnite.SDK.Data.Serialization.FromJson<Models.Shim.Shim>(data);
+                    if (ShimLibrary.success)
+                    {
+                        var AndroidGames = ShimLibrary.data.AndroidGameLibraries.SelectMany(dx => dx.Value.AndroidGames.Where(dr => dr.Value.InstalledApp != null && !dr.Value.InstalledApp.IsSystemApp)
+                            .Select(dr =>
+                            {
+                                ulong? size = dr.Value.InstalledApp?.InstallationSizeBytes;
+                                if (size == 0)
+                                    size = null;
+                                GameMetadata game = new GameMetadata()
+                                {
+                                    //Source = new MetadataNameProperty("Google Play Games on PC"),
+                                    Source = new MetadataNameProperty(GooglePlayGames.ApplicationName),
+                                    Name = dr.Value.InstalledApp.Title,
+                                    GameId = dr.Value.InstalledApp.PackageName,
+                                    IsInstalled = dr.Value.StateCase == Models.Shim.SingleApp.StateOneofCase.InstalledApp,
+                                    InstallSize = size,
+                                    Platforms = new HashSet<MetadataProperty> { new MetadataSpecProperty("pc_windows") },
+                                    InstallDirectory = GooglePlayGames.UserDataImageFolderPath
+                                };
+                                // maybe also check InstalledTimestampMs?
+                                if (dr.Value.InstalledApp.LastLaunchedTimestampMs > 0)
+                                    game.LastActivity = DateTimeOffset.FromUnixTimeMilliseconds(dr.Value.InstalledApp.LastLaunchedTimestampMs).UtcDateTime;
+                                if (dr.Value.GameMetadata?.BackgroundImage?.Url != null)
+                                    game.BackgroundImage = new MetadataFile(dr.Value.GameMetadata?.BackgroundImage?.Url);
+                                if (dr.Value.GameMetadata?.AppIcon?.Url != null)
+                                    game.Icon = new MetadataFile(dr.Value.GameMetadata?.AppIcon?.Url);
+                                //if (dr.Value.GameMetadata?.Logo?.Url != null)
+                                //    game.Logo = new MetadataFile(dr.Value.GameMetadata?.Logo?.Url);
+                                return game;
+                            })
+                        ).ToList();
+                        var PCGames = ShimLibrary.data.PcGames.Where(dr => dr.Value.InstalledGame != null)
+                            .Select(dr =>
+                            {
+                                ulong? size = dr.Value.InstalledGame?.GameData?.DynastyMetadata?.InstallationDetails?.InstallationSize?.SizeInBytes;
+                                if (size == 0)
+                                    size = null;
+                                GameMetadata game = new GameMetadata()
+                                {
+                                    //Source = new MetadataNameProperty("Google Play Games on PC"),
+                                    Source = new MetadataNameProperty(GooglePlayGames.ApplicationName),
+                                    Name = dr.Value.InstalledGame.Title,
+                                    GameId = dr.Value.InstalledGame.GameData.PackageName,
+                                    IsInstalled = dr.Value.StateCase == Models.Shim.PcApp.StateOneofCase.InstalledGame,
+                                    InstallSize = size,
+                                    Platforms = new HashSet<MetadataProperty> { new MetadataSpecProperty("pc_windows") },
+                                };
+                                // maybe also check InstalledTimestampMs?
+                                if (dr.Value.InstalledGame.LastLaunchedTimestampMs > 0)
+                                    game.LastActivity = DateTimeOffset.FromUnixTimeMilliseconds(dr.Value.InstalledGame.LastLaunchedTimestampMs).UtcDateTime;
+                                //if (dr.Value.GameMetadata?.BackgroundImage?.Url != null)
+                                //    game.BackgroundImage = new MetadataFile(dr.Value.GameMetadata?.BackgroundImage?.Url);
+                                //if (dr.Value.GameMetadata?.AppIcon?.Url != null)
+                                //    game.Icon = new MetadataFile(dr.Value.GameMetadata?.AppIcon?.Url);
+                                //if (dr.Value.GameMetadata?.Logo?.Url != null)
+                                //    game.Logo = new MetadataFile(dr.Value.GameMetadata?.Logo?.Url);
+                                return game;
+                            }).ToList();
+                        return AndroidGames.Union(PCGames);
+                    }
+                }
+            }
+
+
             var games = new List<GameMetadata>();
 
             var applicationName = GooglePlayGames.ApplicationName;
