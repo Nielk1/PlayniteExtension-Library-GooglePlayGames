@@ -84,7 +84,25 @@ namespace GooglePlayGamesLibrary
             get
             {
                 var installPath = InstallationPath;
-                return string.IsNullOrEmpty(installPath) ? string.Empty : Path.Combine(installPath, "current", "service", "Service.exe");
+                return string.IsNullOrEmpty(installPath) ? string.Empty : Path.Combine(installPath, "current", "service", "ServiceLib.exe");
+            }
+        }
+
+        public static string ServiceLibraryPath
+        {
+            get
+            {
+                var installPath = InstallationPath;
+                return string.IsNullOrEmpty(installPath) ? string.Empty : Path.Combine(installPath, "current", "service", "ServiceLib.dll");
+            }
+        }
+
+        public static string BattlestarLibraryPath
+        {
+            get
+            {
+                var installPath = InstallationPath;
+                return string.IsNullOrEmpty(installPath) ? string.Empty : Path.Combine(installPath, "current", "service", "BattlestarEnvironmentAPI.dll");
             }
         }
 

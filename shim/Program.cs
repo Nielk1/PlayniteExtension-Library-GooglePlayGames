@@ -14,7 +14,8 @@ namespace PlayServiceShim
     {
         static string DataPath;
         //static string InstallationPath;
-        static string serviceExe;
+        //static string serviceExe;
+        static string serviceLib;
         static string serviceDir;
         static void Main(string[] args)
         {
@@ -30,8 +31,12 @@ namespace PlayServiceShim
                 // Gather data from registry or detaults
                 DataPath = GooglePlayGames.DataPath;
                 //InstallationPath = GooglePlayGames.InstallationPath;
-                serviceExe = GooglePlayGames.ServiceExecutablePath;
-                serviceDir = Path.GetDirectoryName(serviceExe);
+                //serviceExe = GooglePlayGames.ServiceExecutablePath;
+                serviceLib = GooglePlayGames.ServiceLibraryPath;
+                //serviceDir = Path.GetDirectoryName(serviceExe);
+                serviceDir = Path.GetDirectoryName(serviceLib);
+
+                string battlestarLib = GooglePlayGames.BattlestarLibraryPath;
 
                 // Local Data Files
                 string appLibraryEncryptionKey = Path.Combine(DataPath, "app_library_encryption_key");
@@ -41,15 +46,32 @@ namespace PlayServiceShim
                 Environment.SetEnvironmentVariable("PATH",  serviceDir + @"\" + ";" + Environment.GetEnvironmentVariable("PATH"));
 
                 // Reflect into the Google Play Games Service.exe
-                Assembly serviceAsm = Assembly.LoadFrom(serviceExe);
-                Type AppFactoryType = serviceAsm.GetTypes().Where(dr => dr.Name == "AppFactory").FirstOrDefault();
+                //Assembly serviceAsm = Assembly.LoadFrom(serviceExe);
+                Assembly serviceAsm = Assembly.LoadFrom(serviceLib);
+                Assembly battlestarAsm = Assembly.LoadFrom(battlestarLib);
+                //Type AppFactoryType = serviceAsm.GetTypes().Where(dr => dr.Name == "AppFactory").FirstOrDefault();
                 Type DataStoreType = serviceAsm.GetTypes().Where(dr => dr.Name == "DataStore").FirstOrDefault();
                 Type IDataStoreType = serviceAsm.GetTypes().Where(dr => dr.Name == "IDataStore").FirstOrDefault();
                 Type AppLibraryRowDataType = serviceAsm.GetTypes().Where(dr => dr.Name == "AppLibraryRowData").FirstOrDefault();
                 Type AppLibraryModuleType = serviceAsm.GetTypes().Where(dr => dr.Name == "AppLibraryModule").FirstOrDefault();
+                Type BattlestarStartupEnvironmentType = serviceAsm.GetTypes().Where(dr => dr.Name == "BattlestarStartupEnvironment").FirstOrDefault();
+                Type IBattlestarEnvironmentType = battlestarAsm.GetTypes().Where(dr => dr.Name == "IBattlestarEnvironment").FirstOrDefault();
+                Type DefaultBattlestarEnvironmentImplType = serviceAsm.GetTypes().Where(dr => dr.Name == "DefaultBattlestarEnvironmentImpl").FirstOrDefault();
+
 
                 // Execute reflected functions to read encrypted data from database and decrypt it
-                object DataStore = DataStoreType.GetMethod("Create", BindingFlags.Static | BindingFlags.Public).Invoke(null, new object[] { storeDb });
+                ConstructorInfo BattlestarStartupEnvironmentConstructor = BattlestarStartupEnvironmentType.GetConstructor(new Type[] {
+                    typeof(System.String), typeof(System.String), typeof(System.String), typeof(System.String), typeof(System.String)
+                });
+                object BattlestarStartupEnvironment = BattlestarStartupEnvironmentConstructor.Invoke(new object[] { null, null, null, null, GooglePlayGames.InstallationPath });
+
+                ConstructorInfo DefaultBattlestarEnvironmentImplConstructor = DefaultBattlestarEnvironmentImplType.GetConstructor(new Type[] { BattlestarStartupEnvironmentType });
+                object DefaultBattlestarEnvironmentImpl = DefaultBattlestarEnvironmentImplConstructor.Invoke(new object[] { BattlestarStartupEnvironment });
+
+                ConstructorInfo IBattlestarEnvironmentConstructor = DataStoreType.GetConstructor(new Type[] { IBattlestarEnvironmentType });
+                //object DataStore = DataStoreType.GetMethod("Create", BindingFlags.Static | BindingFlags.Public).Invoke(null, new object[] { storeDb });
+                object DataStore = IBattlestarEnvironmentConstructor.Invoke(new object[] { DefaultBattlestarEnvironmentImpl });
+
                 object AppLibraryRowData = IDataStoreType.GetMethod("LoadAppLibrary", BindingFlags.Instance | BindingFlags.Public).Invoke(DataStore, null);
                 object AppLibraryState = AppLibraryRowDataType.GetProperty("AppLibraryState", BindingFlags.Instance | BindingFlags.Public).GetValue(AppLibraryRowData);
                 byte[] DataEncrypted = AppLibraryState as byte[];
@@ -69,13 +91,12 @@ namespace PlayServiceShim
                 {
                     LibraryObject = ParseAndUpgradeFrom.Invoke(null, new object[] { DataEncrypted });
                 }
-
-                Console.WriteLine(JsonConvert.SerializeObject(LibraryObject));
+                
+                Console.WriteLine(JsonConvert.SerializeObject(new { success = true, data = LibraryObject }));
             }
             catch (Exception ex)
             {
-                Console.WriteLine("null");
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine(JsonConvert.SerializeObject(new { success = false, error = ex.ToString() }));
             }
         }
 
