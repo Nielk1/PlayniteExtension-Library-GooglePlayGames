@@ -175,12 +175,25 @@ namespace PlayServiceShim
                 }
 
                 // Execute reflected functions to read encrypted data from database and decrypt it
-                //ConstructorInfo BattlestarStartupEnvironmentConstructor = BattlestarStartupEnvironmentType.GetConstructor(new Type[] {
-                //    typeof(System.String), typeof(System.String), typeof(System.String), typeof(System.String), typeof(System.String)
-                //});
-                //object BattlestarStartupEnvironment = BattlestarStartupEnvironmentConstructor.Invoke(new object[] { null, null, null, null, GooglePlayGames.InstallationPath });
-                MethodInfo BattlestarStartupEnvioronment_CreateProd = BattlestarStartupEnvironmentType.GetMethod("CreateProd", BindingFlags.Static | BindingFlags.Public);
-                object BattlestarStartupEnvironment = BattlestarStartupEnvioronment_CreateProd.Invoke(null, new object[] { null, GooglePlayGames.DataPath });
+                object BattlestarStartupEnvironment = null;
+                ConstructorInfo BattlestarStartupEnvironmentConstructor = BattlestarStartupEnvironmentType.GetConstructor(new Type[] {
+                    typeof(System.String), typeof(System.String), typeof(System.String), typeof(System.String), typeof(System.String)
+                });
+
+                if (BattlestarStartupEnvironmentConstructor != null)
+                    BattlestarStartupEnvironment = BattlestarStartupEnvironmentConstructor.Invoke(new object[] { null, null, null, null, GooglePlayGames.InstallationPath });
+
+                if (BattlestarStartupEnvironment == null)
+                {
+                    MethodInfo BattlestarStartupEnvironment_CreateProd = BattlestarStartupEnvironmentType.GetMethod("CreateProd", BindingFlags.Static | BindingFlags.Public);
+                    BattlestarStartupEnvironment = BattlestarStartupEnvironment_CreateProd.Invoke(null, new object[] { null, GooglePlayGames.DataPath });
+                }
+
+                if (BattlestarStartupEnvironment == null)
+                {
+                    Console.WriteLine(JsonConvert.SerializeObject(new { success = false, error = "No Battlestar Startup Environment" }));
+                    return;
+                }
 
                 ConstructorInfo DefaultBattlestarEnvironmentImplConstructor = DefaultBattlestarEnvironmentImplType.GetConstructor(new Type[] { BattlestarStartupEnvironmentType });
                 object DefaultBattlestarEnvironmentImpl = DefaultBattlestarEnvironmentImplConstructor.Invoke(new object[] { BattlestarStartupEnvironment });
