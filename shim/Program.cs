@@ -1,6 +1,7 @@
 ﻿using GooglePlayGamesLibrary;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -14,9 +15,12 @@ namespace PlayServiceShim
     {
         static string DataPath;
         //static string InstallationPath;
-        //static string serviceExe;
+        static string serviceExe;
         static string serviceLib;
         static string serviceDir;
+
+        //static Dictionary<string, Assembly> ServiceModules = new Dictionary<string, Assembly>();
+
         static void Main(string[] args)
         {
             AppDomain.CurrentDomain.AssemblyResolve += OnResolveAssembly;
@@ -31,7 +35,7 @@ namespace PlayServiceShim
                 // Gather data from registry or detaults
                 DataPath = GooglePlayGames.DataPath;
                 //InstallationPath = GooglePlayGames.InstallationPath;
-                //serviceExe = GooglePlayGames.ServiceExecutablePath;
+                serviceExe = GooglePlayGames.ServiceExecutablePath;
                 serviceLib = GooglePlayGames.ServiceLibraryPath;
                 //serviceDir = Path.GetDirectoryName(serviceExe);
                 serviceDir = Path.GetDirectoryName(serviceLib);
@@ -43,27 +47,140 @@ namespace PlayServiceShim
                 string storeDb = Path.Combine(DataPath, "store.db");
 
                 // Update environment so we can find needed DLLs
-                Environment.SetEnvironmentVariable("PATH",  serviceDir + @"\" + ";" + Environment.GetEnvironmentVariable("PATH"));
+                Environment.SetEnvironmentVariable("PATH", serviceDir + @"\" + ";" + Environment.GetEnvironmentVariable("PATH"));
+
+                Dictionary<string, Assembly> ServiceModules = new Dictionary<string, Assembly>();
+                HashSet<string> AssembliesScanned = new HashSet<string>();
 
                 // Reflect into the Google Play Games Service.exe
-                //Assembly serviceAsm = Assembly.LoadFrom(serviceExe);
-                Assembly serviceAsm = Assembly.LoadFrom(serviceLib);
-                Assembly battlestarAsm = Assembly.LoadFrom(battlestarLib);
-                //Type AppFactoryType = serviceAsm.GetTypes().Where(dr => dr.Name == "AppFactory").FirstOrDefault();
-                Type DataStoreType = serviceAsm.GetTypes().Where(dr => dr.Name == "DataStore").FirstOrDefault();
-                Type IDataStoreType = serviceAsm.GetTypes().Where(dr => dr.Name == "IDataStore").FirstOrDefault();
-                Type AppLibraryRowDataType = serviceAsm.GetTypes().Where(dr => dr.Name == "AppLibraryRowData").FirstOrDefault();
-                Type AppLibraryModuleType = serviceAsm.GetTypes().Where(dr => dr.Name == "AppLibraryModule").FirstOrDefault();
-                Type BattlestarStartupEnvironmentType = serviceAsm.GetTypes().Where(dr => dr.Name == "BattlestarStartupEnvironment").FirstOrDefault();
-                Type IBattlestarEnvironmentType = battlestarAsm.GetTypes().Where(dr => dr.Name == "IBattlestarEnvironment").FirstOrDefault();
-                Type DefaultBattlestarEnvironmentImplType = serviceAsm.GetTypes().Where(dr => dr.Name == "DefaultBattlestarEnvironmentImpl").FirstOrDefault();
+                Assembly serviceExeAsm = Assembly.LoadFrom(serviceExe);
 
+                // load all the assemblies types we need might be in
+                if (!string.IsNullOrWhiteSpace(serviceDir))
+                {
+                    Assembly targetAsm = serviceExeAsm;
+                    Queue<Assembly> assemblies = new Queue<Assembly>();
+                    for (; ; )
+                    {
+                        foreach (var assemblyName in targetAsm.GetReferencedAssemblies())
+                        {
+                            if (AssembliesScanned.Contains(assemblyName.Name))
+                                continue;
+                            AssembliesScanned.Add(assemblyName.Name);
+                            var dllName = assemblyName.Name + ".dll";
+                            string serviceDllPath = Path.Combine(serviceDir, dllName);
+                            if (File.Exists(serviceDllPath))
+                            {
+                                if (!ServiceModules.ContainsKey(assemblyName.Name))
+                                {
+                                    Assembly asm = Assembly.LoadFrom(serviceDllPath);
+                                    assemblies.Enqueue(asm);
+                                    ServiceModules.Add(assemblyName.Name, asm);
+                                }
+                            }
+                        }
+                        if (assemblies.Count == 0)
+                            break;
+                        targetAsm = assemblies.Dequeue();
+                    }
+                }
+
+                // find IDataStore Type
+                Type IDataStoreType = null;
+                foreach (var pair in ServiceModules)
+                {
+                    IDataStoreType = pair.Value.GetTypes().Where(dr => dr.Name == "IDataStore").FirstOrDefault();
+                    if (IDataStoreType != null)
+                        break;
+                }
+
+                // find possible implementations of IDataStore
+                //List<Type> ImplementersOfIDataStoreType = new List<Type>();
+                //foreach (var pair in ServiceModules)
+                //{
+                //    try
+                //    {
+                //        foreach (var item in pair.Value.GetTypes().Where(dr => dr.GetInterfaces().Any(dx => dx == IDataStoreType_)))
+                //        {
+                //            ImplementersOfIDataStoreType.Add(item);
+                //        }
+                //    }
+                //    catch { }
+                //}
+
+                // find DataStore Type
+                Type DataStoreType = null;
+                foreach (var pair in ServiceModules)
+                {
+                    DataStoreType = pair.Value.GetTypes().Where(dr => dr.Name == "DataStore").FirstOrDefault();
+                    if (DataStoreType != null)
+                        break;
+                }
+
+                // find AppLibraryRowData Type
+                Type AppLibraryRowDataType = null;
+                foreach (var pair in ServiceModules)
+                {
+                    AppLibraryRowDataType = pair.Value.GetTypes().Where(dr => dr.Name == "AppLibraryRowData").FirstOrDefault();
+                    if (AppLibraryRowDataType != null)
+                        break;
+                }
+
+                // find AppLibraryModule Type
+                Type AppLibraryModuleType = null;
+                foreach (var pair in ServiceModules)
+                {
+                    AppLibraryModuleType = pair.Value.GetTypes().Where(dr => dr.Name == "AppLibraryModule").FirstOrDefault();
+                    if (AppLibraryModuleType != null)
+                        break;
+                }
+
+                // find BattlestarStartupEnvironment Type
+                Type BattlestarStartupEnvironmentType = null;
+                foreach (var pair in ServiceModules)
+                {
+                    try
+                    {
+                        BattlestarStartupEnvironmentType = pair.Value.GetTypes().Where(dr => dr.Name == "BattlestarStartupEnvironment").FirstOrDefault();
+                        if (BattlestarStartupEnvironmentType != null)
+                            break;
+                    }
+                    catch { }
+                }
+
+                // find IBattlestarStartupEnvironment Type
+                Type IBattlestarEnvironmentType = null;
+                foreach (var pair in ServiceModules)
+                {
+                    try
+                    {
+                        IBattlestarEnvironmentType = pair.Value.GetTypes().Where(dr => dr.Name == "IBattlestarEnvironment").FirstOrDefault();
+                        if (IBattlestarEnvironmentType != null)
+                            break;
+                    }
+                    catch { }
+                }
+
+                // find DefaultBattlestarEnvironmentImpl Type
+                Type DefaultBattlestarEnvironmentImplType = null;
+                foreach (var pair in ServiceModules)
+                {
+                    try
+                    {
+                        DefaultBattlestarEnvironmentImplType = pair.Value.GetTypes().Where(dr => dr.Name == "DefaultBattlestarEnvironmentImpl").FirstOrDefault();
+                        if (DefaultBattlestarEnvironmentImplType != null)
+                            break;
+                    }
+                    catch { }
+                }
 
                 // Execute reflected functions to read encrypted data from database and decrypt it
-                ConstructorInfo BattlestarStartupEnvironmentConstructor = BattlestarStartupEnvironmentType.GetConstructor(new Type[] {
-                    typeof(System.String), typeof(System.String), typeof(System.String), typeof(System.String), typeof(System.String)
-                });
-                object BattlestarStartupEnvironment = BattlestarStartupEnvironmentConstructor.Invoke(new object[] { null, null, null, null, GooglePlayGames.InstallationPath });
+                //ConstructorInfo BattlestarStartupEnvironmentConstructor = BattlestarStartupEnvironmentType.GetConstructor(new Type[] {
+                //    typeof(System.String), typeof(System.String), typeof(System.String), typeof(System.String), typeof(System.String)
+                //});
+                //object BattlestarStartupEnvironment = BattlestarStartupEnvironmentConstructor.Invoke(new object[] { null, null, null, null, GooglePlayGames.InstallationPath });
+                MethodInfo BattlestarStartupEnvioronment_CreateProd = BattlestarStartupEnvironmentType.GetMethod("CreateProd", BindingFlags.Static | BindingFlags.Public);
+                object BattlestarStartupEnvironment = BattlestarStartupEnvioronment_CreateProd.Invoke(null, new object[] { null, GooglePlayGames.DataPath });
 
                 ConstructorInfo DefaultBattlestarEnvironmentImplConstructor = DefaultBattlestarEnvironmentImplType.GetConstructor(new Type[] { BattlestarStartupEnvironmentType });
                 object DefaultBattlestarEnvironmentImpl = DefaultBattlestarEnvironmentImplConstructor.Invoke(new object[] { BattlestarStartupEnvironment });
@@ -91,7 +208,7 @@ namespace PlayServiceShim
                 {
                     LibraryObject = ParseAndUpgradeFrom.Invoke(null, new object[] { DataEncrypted });
                 }
-                
+
                 Console.WriteLine(JsonConvert.SerializeObject(new { success = true, data = LibraryObject }));
             }
             catch (Exception ex)

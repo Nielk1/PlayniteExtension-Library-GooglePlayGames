@@ -84,7 +84,7 @@ namespace GooglePlayGamesLibrary
             get
             {
                 var installPath = InstallationPath;
-                return string.IsNullOrEmpty(installPath) ? string.Empty : Path.Combine(installPath, "current", "service", "ServiceLib.exe");
+                return string.IsNullOrEmpty(installPath) ? string.Empty : Path.Combine(installPath, "current", "service", "Service.exe");
             }
         }
 
