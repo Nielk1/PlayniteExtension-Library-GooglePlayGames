@@ -331,6 +331,15 @@ namespace GooglePlayGamesLibrary
             {
                 if (System.IO.File.Exists(ShimExe))
                 {
+                    Dictionary<string, Game> KnownGames = new Dictionary<string, Game>();
+                    foreach (var game in playniteAPI.Database.Games)
+                    {
+                        if (game.PluginId == Id)
+                        {
+                            KnownGames[game.GameId] = game;
+                        }
+                    }
+
                     StringBuilder output = new StringBuilder();
                     Process proc = new Process()
                     {
@@ -409,7 +418,24 @@ namespace GooglePlayGamesLibrary
                                 //    game.Logo = new MetadataFile(dr.Value.GameMetadata?.Logo?.Url);
                                 return game;
                             }).ToList();
-                        return AndroidGames.Union(PCGames);
+                        List<GameMetadata> retVal = new List<GameMetadata>();
+                        var AllNewMeta = AndroidGames.Union(PCGames);
+                        foreach (GameMetadata meta in AllNewMeta)
+                        {
+                            if (KnownGames.ContainsKey(meta.GameId))
+                                KnownGames.Remove(meta.GameId);
+                            retVal.Add(meta);
+                        }
+                        foreach (var known in KnownGames)
+                        {
+                            retVal.Add(new GameMetadata()
+                            {
+                                GameId = known.Value.GameId,
+                                IsInstalled = false,
+                                InstallSize = null,
+                            });
+                        }
+                        return retVal;
                     }
                 }
             }
