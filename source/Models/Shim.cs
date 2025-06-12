@@ -17,7 +17,7 @@ namespace GooglePlayGamesLibrary.Models.Shim
         public Dictionary<string, PcApp> PcGames { get; set; }
         //PcAppsDeprecated
         public UserActivity UserActivity { get; set; }
-        public Dictionary<Guid, AndroidGameLibrary> AndroidGameLibraries { get; set; }
+        public Dictionary<string, AndroidGameLibrary> AndroidGameLibraries { get; set; }
 
     }
     public class AndroidGameLibrary
@@ -29,7 +29,7 @@ namespace GooglePlayGamesLibrary.Models.Shim
     }
     public class LibraryId
     {
-        public Guid Token { get; set; }
+        public string Token { get; set; }
     }
     public class PcApp
     {
